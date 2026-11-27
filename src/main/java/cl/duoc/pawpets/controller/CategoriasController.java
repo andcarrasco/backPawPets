@@ -1,57 +1,66 @@
 package cl.duoc.pawpets.controller;
 
 import cl.duoc.pawpets.model.Categoria;
-import cl.duoc.pawpets.service.CategoriaService;
-
+import cl.duoc.pawpets.service.CategoriasService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
+import jakarta.validation.Valid;
 import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/categorias")
-@Tag(name = "Categorias", description = "Administracion de categorias")
+@Tag(name = "Categorías", description = "CRUD de las categorías del catálogo")
 public class CategoriasController {
+    private final CategoriasService servicio;
 
-    private final CategoriaService servicio;
-
-    public CategoriasController(CategoriaService servicio) {
+    public CategoriasController(CategoriasService servicio) {
         this.servicio = servicio;
     }
 
-    @Operation(summary = "Listar categorias")
-    @GetMapping
+    @Operation(summary = "Listar categorías")
+    @GetMapping("/api/categorias")
     public List<Categoria> listar() {
         return servicio.listar();
     }
 
-    @Operation(summary = "Consultar categoria por ID")
-    @GetMapping("/{id}")
-    public Categoria buscarPorId(@PathVariable int id) {
-        return servicio.buscarPorId(id);
+    @Operation(summary = "Ver una categoría")
+    @ApiResponse(responseCode = "200", description = "Categoría encontrada")
+    @ApiResponse(responseCode = "404", description = "No existe una categoría con ese id")
+    @GetMapping("/api/categorias/{id}")
+    public ResponseEntity<Categoria> buscar(@PathVariable int id) {
+        return ResponseEntity.ok(servicio.buscar(id));
     }
 
-    @Operation(summary = "Crear categoria")
-    @PostMapping
-    public ResponseEntity<Categoria> crear(@RequestBody Categoria datos) {
-        Categoria creada = servicio.crear(datos);
-        return ResponseEntity.status(HttpStatus.CREATED).body(creada);
+    @Operation(summary = "Crear una categoría")
+    @ApiResponse(responseCode = "201", description = "Categoría creada")
+    @ApiResponse(responseCode = "400", description = "Falta el nombre")
+    @PostMapping("/api/categorias")
+    public ResponseEntity<Categoria> crear(@Valid @RequestBody Categoria categoria) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(servicio.crear(categoria));
     }
 
-    @Operation(summary = "Actualizar categoria")
-    @PutMapping("/{id}")
-    public Categoria actualizar(
-            @PathVariable int id,
-            @RequestBody Categoria datos) {
-        return servicio.actualizar(id, datos);
+    @Operation(summary = "Actualizar una categoría")
+    @ApiResponse(responseCode = "200", description = "Categoría actualizada")
+    @ApiResponse(responseCode = "404", description = "No existe una categoría con ese id")
+    @PutMapping("/api/categorias/{id}")
+    public ResponseEntity<Categoria> actualizar(@PathVariable int id, @Valid @RequestBody Categoria categoria) {
+        return ResponseEntity.ok(servicio.actualizar(id, categoria));
     }
 
-    @Operation(summary = "Eliminar categoria")
-    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar una categoría", description = "No se puede si tiene productos asociados.")
+    @ApiResponse(responseCode = "204", description = "Categoría eliminada")
+    @ApiResponse(responseCode = "404", description = "No existe una categoría con ese id")
+    @ApiResponse(responseCode = "409", description = "La categoría tiene productos asociados")
+    @DeleteMapping("/api/categorias/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable int id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();
