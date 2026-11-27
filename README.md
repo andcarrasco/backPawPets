@@ -48,12 +48,25 @@ El contrato OpenAPI está en http://localhost:8081/v3/api-docs.
 - Login: `POST /api/auth/login` con el correo y la clave.
 - Pedidos: `GET /api/pedidos`, `GET /api/pedidos/{id}` y `POST /api/pedidos`. Al crear un pedido se revisa y se
   descuenta el stock de cada producto.
+- Reportes: `GET /api/reportes/ventas?mes=AAAA-MM` devuelve el total vendido, la cantidad de pedidos y los cinco
+  productos más vendidos del mes.
 
 También puedes probar la API desde PowerShell.
 
 ```powershell
 Invoke-RestMethod http://localhost:8081/api/productos
 ```
+
+## Pruebas
+
+Las pruebas unitarias de los servicios usan JUnit 5 y Mockito, así que no necesitan conexión a la base.
+
+```powershell
+.\mvnw.cmd test
+```
+
+En la carpeta `postman` está la colección `PawPets.postman_collection.json`. Con la API iniciada, se importa en
+Postman y se ejecuta con **Run collection**. Recorre el CRUD de cada recurso y revisa los errores 400, 401, 404 y 409.
 
 ## Errores
 
@@ -68,8 +81,8 @@ Ese formato lo arma `GlobalExceptionHandler`. Un dato que no existe devuelve 404
 
 ## Organización
 
-- `controller`: `ProductosController`, `CategoriasController`, `UsuariosController`, `AuthController` y
-  `PedidosController` exponen las rutas HTTP y las documentan para Swagger.
+- `controller`: `ProductosController`, `CategoriasController`, `UsuariosController`, `AuthController`,
+  `PedidosController` y `ReportesController` exponen las rutas HTTP y las documentan para Swagger.
 - `service`: las clases `*Service` tienen las reglas de cada recurso, como el correo único o el descuento de stock.
 - `repository`: `RepositorioProductos` y los demás repositorios acceden a MongoDB con Spring Data.
 - `model`: los documentos que se guardan en la base y los datos que llegan en las peticiones.
